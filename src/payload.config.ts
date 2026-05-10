@@ -51,6 +51,12 @@ const cloudflare =
 export default buildConfig({
   admin: {
     user: Users.slug,
+    components: {
+      graphics: {
+        Logo: '/src/components/AdminLogo#default',
+        Icon: '/src/components/AdminLogo#default',
+      },
+    },
     importMap: {
       baseDir: path.resolve(dirname),
     },
