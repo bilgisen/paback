@@ -1,6 +1,7 @@
 import fs from 'fs'
 import path from 'path'
 import { sqliteD1Adapter } from '@payloadcms/db-d1-sqlite'
+import { resendAdapter } from '@payloadcms/email-resend'
 import { lexicalEditor } from '@payloadcms/richtext-lexical'
 import { buildConfig } from 'payload'
 import { fileURLToPath } from 'url'
@@ -61,6 +62,11 @@ export default buildConfig({
       baseDir: path.resolve(dirname),
     },
   },
+  email: resendAdapter({
+    defaultFromAddress: 'noreply@paraanaliz.com',
+    defaultFromName: 'ParaAnaliz',
+    apiKey: process.env.RESEND_API_KEY || '',
+  }),
   collections: [Users, Media, Authors, Categories, Tags, News, Blog],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',
