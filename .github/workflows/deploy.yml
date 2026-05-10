@@ -33,3 +33,4 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           PAYLOAD_SECRET: ${{ secrets.PAYLOAD_SECRET }}
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          NODE_ENV: production

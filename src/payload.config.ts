@@ -24,8 +24,9 @@ const realpath = (value: string) => (fs.existsSync(value) ? fs.realpathSync(valu
 const isCLI = process.argv.some((value) => realpath(value).endsWith(path.join('payload', 'bin.js')))
 const isProduction = process.env.NODE_ENV === 'production'
 const isBuild =
-  process.argv.some((value) => value.endsWith('next') || value.endsWith('next.js')) &&
-  process.argv.includes('build')
+  process.env.NEXT_PHASE === 'phase-production-build' ||
+  (process.argv.some((value) => value.endsWith('next') || value.endsWith('next.js')) &&
+    process.argv.includes('build'))
 
 const createLog =
   (level: string, fn: typeof console.log) => (objOrMsg: object | string, msg?: string) => {
