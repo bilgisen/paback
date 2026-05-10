@@ -3,6 +3,7 @@
   "main": ".open-next/worker.js",
   "name": "paback",
   "compatibility_date": "2025-08-15",
+  "preview_urls": false,
   "compatibility_flags": [
     // Enable Node.js API
     // see https://developers.cloudflare.com/workers/configuration/compatibility-flags/#nodejs-compatibility-flag
@@ -17,7 +18,7 @@
   },
   "d1_databases": [
     {
-      "binding": "D1",
+      "binding": "DB",
       "database_id": "d6d2a1af-09ff-4fe3-a18a-f2543cf700cf",
       "database_name": "pbackd",
       "remote": true,
@@ -33,7 +34,8 @@
   "r2_buckets": [
     {
       "binding": "R2",
-      "bucket_name": "pbackr","preview_bucket_name": "pbackr",
+      "bucket_name": "pbackr",
+      "preview_bucket_name": "pbackr",
     },
     // Create a R2 binding with the binding name "NEXT_INC_CACHE_R2_BUCKET"
     // {
@@ -41,6 +43,14 @@
     //   "bucket_name": "<BUCKET_NAME>",
     // },
   ],
+  "observability": {
+    "enabled": true,
+    "logs": {
+      "enabled": true,
+      "head_sampling_rate": 1,
+      "invocation_logs": true,
+    },
+  },
 
   // Here's how to configure an additional environment
   // It can be deployed with `CLOUDFLARE_ENV=staging pnpm run deploy`
@@ -76,3 +86,4 @@
   //   }
   // }
 }
+
