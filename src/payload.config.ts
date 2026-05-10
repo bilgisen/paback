@@ -23,6 +23,9 @@ const realpath = (value: string) => (fs.existsSync(value) ? fs.realpathSync(valu
 
 const isCLI = process.argv.some((value) => realpath(value).endsWith(path.join('payload', 'bin.js')))
 const isProduction = process.env.NODE_ENV === 'production'
+const isBuild =
+  process.argv.some((value) => value.endsWith('next') || value.endsWith('next.js')) &&
+  process.argv.includes('build')
 
 const createLog =
   (level: string, fn: typeof console.log) => (objOrMsg: object | string, msg?: string) => {
@@ -45,7 +48,7 @@ const cloudflareLogger = {
 } as any // Use PayloadLogger type when it's exported
 
 const cloudflare =
-  isCLI || !isProduction
+  isCLI || !isProduction || isBuild
     ? await getCloudflareContextFromWrangler()
     : await getCloudflareContext({ async: true })
 
@@ -89,7 +92,7 @@ function getCloudflareContextFromWrangler(): Promise<CloudflareContext> {
     ({ getPlatformProxy }) =>
       getPlatformProxy({
         environment: process.env.CLOUDFLARE_ENV,
-        remoteBindings: isProduction,
+        remoteBindings: isProduction && !isBuild,
       } satisfies GetPlatformProxyOptions),
   )
 }
