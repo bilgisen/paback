@@ -18,7 +18,7 @@
   },
   "d1_databases": [
     {
-      "binding": "DB",
+      "binding": "D1",
       "database_id": "d6d2a1af-09ff-4fe3-a18a-f2543cf700cf",
       "database_name": "pbackd",
       "remote": true,
