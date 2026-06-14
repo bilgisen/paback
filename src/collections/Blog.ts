@@ -36,6 +36,15 @@ export const Blog: CollectionConfig = {
       admin: { description: 'Boş bırakılırsa başlıktan otomatik üretilir' },
     },
     {
+      name: 'teaser',
+      type: 'textarea',
+      label: 'Teaser (Özet)',
+      admin: {
+        description: 'İçeriğin hemen üstünde görünür, bir paragraf akacak kadar uzun olmalı',
+        rows: 4,
+      },
+    },
+    {
       name: 'body',
       type: 'richText',
       required: true,
