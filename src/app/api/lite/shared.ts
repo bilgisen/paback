@@ -92,6 +92,16 @@ function placeholders(count: number): string {
   return Array.from({ length: count }, () => '?').join(', ')
 }
 
+// D1 enforces a maximum of 100 bind variables per statement (SQLITE_MAX_VARIABLE_NUMBER).
+// Chunk IN-clause lookups so each statement stays well under that limit.
+function chunk<T>(arr: T[], size: number): T[][] {
+  const out: T[][] = []
+  for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size))
+  return out
+}
+
+const CHUNK_SIZE = 50
+
 function toInt(value: string | null): number | undefined {
   if (value === null || value === '') return undefined
   const n = Number(value)
@@ -302,53 +312,43 @@ async function fetchRelated(
   const featuredMediaIds = Array.from(
     new Set(rows.map((r) => r.featured_image_id).filter((v): v is number => v != null)),
   )
-  const parentIds = rows.map((r) => r.id)
-  const allRowIds = parentIds.length ? placeholders(parentIds.length) : ''
-
-  const statements: any[] = []
-  if (categoryIds.length) statements.push(db.prepare(`SELECT id, name, slug FROM categories WHERE id IN (${placeholders(categoryIds.length)})`).bind(...categoryIds))
-  if (authorIds.length) {
-    statements.push(
-      db
-        .prepare(
-          `SELECT id, name, slug, email, short_bio, profile_photo_id, ` +
-            `social_links_twitter, social_links_instagram, social_links_linkedin, ` +
-            `social_links_facebook, social_links_youtube FROM authors WHERE id IN (${placeholders(authorIds.length)})`,
-        )
-        .bind(...authorIds),
-    )
-  }
-  if (parentIds.length) {
-    statements.push(
-      db
-        .prepare(
-          `SELECT r.parent_id AS parent_id, t.id, t.name, t.slug FROM ${collection}_rels r ` +
-            `JOIN tags t ON r.tags_id = t.id WHERE r.path = 'tags' AND r.parent_id IN (${allRowIds})`,
-        )
-        .bind(...parentIds),
-    )
-  }
-
-  const results = statements.length ? await db.batch(statements) : []
 
   const categories = new Map<number, CategoryRow>()
-  const authors = new Map<number, AuthorRow>()
-  const tagsByParent = new Map<number, TagRef[]>()
-  const profilePhotoIds: number[] = []
+  for (const ids of chunk(categoryIds, CHUNK_SIZE)) {
+    if (!ids.length) continue
+    const res = await db.prepare(`SELECT id, name, slug FROM categories WHERE id IN (${placeholders(ids.length)})`).bind(...ids).all()
+    for (const r of (res.results ?? []) as CategoryRow[]) categories.set(r.id, r)
+  }
 
-  let idx = 0
-  if (categoryIds.length) {
-    for (const r of (results[idx]?.results ?? []) as CategoryRow[]) categories.set(r.id, r)
-    idx++
+  const authors = new Map<number, AuthorRow>()
+  const profilePhotoIds: number[] = []
+  for (const ids of chunk(authorIds, CHUNK_SIZE)) {
+    if (!ids.length) continue
+    const res = await db
+      .prepare(
+        `SELECT id, name, slug, email, short_bio, profile_photo_id, ` +
+          `social_links_twitter, social_links_instagram, social_links_linkedin, ` +
+          `social_links_facebook, social_links_youtube FROM authors WHERE id IN (${placeholders(ids.length)})`,
+      )
+      .bind(...ids)
+      .all()
+    for (const r of (res.results ?? []) as AuthorRow[]) {
+      authors.set(r.id, r)
+      if (r.profile_photo_id != null) profilePhotoIds.push(r.profile_photo_id)
+    }
   }
-  if (authorIds.length) {
-    const authorRows = (results[idx]?.results ?? []) as AuthorRow[]
-    for (const r of authorRows) authors.set(r.id, r)
-    for (const r of authorRows) if (r.profile_photo_id != null) profilePhotoIds.push(r.profile_photo_id)
-    idx++
-  }
-  if (parentIds.length) {
-    for (const r of (results[idx]?.results ?? []) as TagRow[]) {
+
+  const tagsByParent = new Map<number, TagRef[]>()
+  for (const ids of chunk(rows.map((r) => r.id), CHUNK_SIZE)) {
+    if (!ids.length) continue
+    const res = await db
+      .prepare(
+        `SELECT r.parent_id AS parent_id, t.id, t.name, t.slug FROM ${collection}_rels r ` +
+          `JOIN tags t ON r.tags_id = t.id WHERE r.path = 'tags' AND r.parent_id IN (${placeholders(ids.length)})`,
+      )
+      .bind(...ids)
+      .all()
+    for (const r of (res.results ?? []) as TagRow[]) {
       const list = tagsByParent.get(r.parent_id) ?? []
       list.push({ id: r.id, name: r.name, slug: r.slug })
       tagsByParent.set(r.parent_id, list)
@@ -356,13 +356,14 @@ async function fetchRelated(
   }
 
   const mediaIds = Array.from(new Set([...featuredMediaIds, ...profilePhotoIds]))
-  let media = new Map<number, MediaRow>()
-  if (mediaIds.length) {
-    const mediaResult = await db
-      .prepare(`SELECT id, alt, url, width, height FROM media WHERE id IN (${placeholders(mediaIds.length)})`)
-      .bind(...mediaIds)
+  const media = new Map<number, MediaRow>()
+  for (const ids of chunk(mediaIds, CHUNK_SIZE)) {
+    if (!ids.length) continue
+    const res = await db
+      .prepare(`SELECT id, alt, url, width, height FROM media WHERE id IN (${placeholders(ids.length)})`)
+      .bind(...ids)
       .all()
-    media = new Map((mediaResult.results as MediaRow[]).map((r) => [r.id, r]))
+    for (const r of (res.results ?? []) as MediaRow[]) media.set(r.id, r)
   }
 
   return { categories, authors, media, tagsByParent }
