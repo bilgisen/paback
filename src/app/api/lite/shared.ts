@@ -260,7 +260,7 @@ function toLiteListResponse(docs: LiteDoc[], totalDocs: number, limit: number, p
 
 async function getDb(): Promise<any> {
   const { env } = await getCloudflareContext({ async: true })
-  return env.D1
+  return env.D1.withSession()
 }
 
 export async function fetchLiteList(options: ListOptions): Promise<LiteListResponse> {
