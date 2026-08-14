@@ -1,6 +1,8 @@
 import type { CollectionConfig } from 'payload'
 import { isAdminOrEditor, adminOnly } from '../access/roles'
 
+import { validateSlugUniqueness } from '../hooks/validateSlug'
+
 export const Tags: CollectionConfig = {
   slug: 'tags',
   admin: {
@@ -27,6 +29,7 @@ export const Tags: CollectionConfig = {
       unique: true,
       index: true,
       label: 'Slug',
+      validate: validateSlugUniqueness,
     },
   ],
 }

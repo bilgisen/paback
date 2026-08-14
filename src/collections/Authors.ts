@@ -3,6 +3,8 @@ import { isAdminOrEditor, adminOnly } from '../access/roles'
 import { preventAuthorDelete } from '../hooks/preventDeleteIfHasContent'
 import { generateSlug } from '../hooks/generateSlug'
 
+import { validateSlugUniqueness } from '../hooks/validateSlug'
+
 export const Authors: CollectionConfig = {
   slug: 'authors',
   admin: {
@@ -33,6 +35,7 @@ export const Authors: CollectionConfig = {
       unique: true,
       index: true,
       label: 'Slug',
+      validate: validateSlugUniqueness,
       admin: {
         description: 'URL-safe benzersiz tanımlayıcı (örn. evren-bolgun)',
       },

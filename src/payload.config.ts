@@ -83,7 +83,12 @@ export default buildConfig({
   typescript: {
     outputFile: path.resolve(dirname, 'payload-types.ts'),
   },
-  db: sqliteD1Adapter({ binding: cloudflare.env.D1 }),
+  db: sqliteD1Adapter({
+    binding: cloudflare.env.D1,
+    // Opt-in: set READ_REPLICAS=true after enabling read replication for the
+    // D1 database in the Cloudflare dashboard. Raises read concurrency (10 → 100).
+    ...(process.env.READ_REPLICAS === 'true' ? { readReplicas: 'first-primary' } : {}),
+  }),
   logger: isProduction ? cloudflareLogger : undefined,
   plugins: [
     r2Storage({

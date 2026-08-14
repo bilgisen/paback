@@ -1,0 +1,12 @@
+name = "paback-warmup"
+main = "src/index.ts"
+compatibility_date = "2026-04-23"
+
+# Ping paback every 5 minutes so its isolates stay warm.
+# A warm isolate avoids the 5–30s Payload/Next.js cold start on the first
+# public request after idle eviction.
+[triggers]
+crons = ["*/5 * * * *"]
+
+[observability]
+enabled = true

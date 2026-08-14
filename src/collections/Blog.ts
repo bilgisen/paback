@@ -3,6 +3,8 @@ import { isAdminOrEditor, adminOnly, publicReadPublished } from '../access/roles
 import { generateSlug } from '../hooks/generateSlug'
 import { setPublishedAt } from '../hooks/setPublishedAt'
 
+import { validateSlugUniqueness } from '../hooks/validateSlug'
+
 export const Blog: CollectionConfig = {
   slug: 'blog',
   admin: {
@@ -34,6 +36,7 @@ export const Blog: CollectionConfig = {
       index: true,
       label: 'Slug',
       admin: { description: 'Boş bırakılırsa başlıktan otomatik üretilir' },
+      validate: validateSlugUniqueness,
     },
     {
       name: 'body',
@@ -82,6 +85,7 @@ export const Blog: CollectionConfig = {
       type: 'select',
       required: true,
       defaultValue: 'draft',
+      index: true,
       label: 'Durum',
       options: [
         { label: 'Taslak', value: 'draft' },

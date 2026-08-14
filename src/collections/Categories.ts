@@ -2,6 +2,8 @@ import type { CollectionConfig } from 'payload'
 import { isAdminOrEditor, adminOnly } from '../access/roles'
 import { preventCategoryDelete } from '../hooks/preventDeleteIfHasContent'
 
+import { validateSlugUniqueness } from '../hooks/validateSlug'
+
 export const Categories: CollectionConfig = {
   slug: 'categories',
   admin: {
@@ -31,6 +33,7 @@ export const Categories: CollectionConfig = {
       unique: true,
       index: true,
       label: 'Slug',
+      validate: validateSlugUniqueness,
       admin: { description: 'URL-safe benzersiz tanımlayıcı (örn. ekonomi, finans)' },
     },
     {
