@@ -118,7 +118,7 @@ export function parseListParams(searchParams: URLSearchParams): ListOptions {
     tagsSlugIn: searchParams.getAll('where[tags.slug][in][]').filter(Boolean),
   }
 
-  return { collection: 'news', page, limit, sort, filters, includeBody: false }
+  return { collection: 'news', page, limit, sort, filters, includeBody: Boolean(filters.slugEquals) }
 }
 
 export function buildWhere(collection: CollectionName, filters: Filters): { sql: string[]; binds: Array<string | number> } {
