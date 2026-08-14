@@ -3,17 +3,17 @@
  * request after idle eviction doesn't pay the Payload/Next.js cold start.
  *
  * Deploy: `wrangler deploy` (from this directory).
- * The scheduled handler runs every 5 minutes (see wrangler.toml).
+ * The scheduled handler runs every minute (see wrangler.toml).
+ *
+ * Only cheap lite endpoints are pinged: a single request loads the whole
+ * worker bundle, so one fast call per minute is enough to keep every route
+ * (lite + Payload REST) warm. Expensive `draft=true` REST pings were removed —
+ * they add D1 load without keeping the isolate any warmer.
  */
 
 const ENDPOINTS = [
-  // Lite API — hot path for the frontend (astroblog service binding).
   'https://admin.paraanaliz.com/api/lite/news?limit=5',
   'https://admin.paraanaliz.com/api/lite/blog?limit=5',
-  // Payload REST — keeps the full Payload path warm (admin/editors, local dev,
-  // direct calls). Shares the same worker isolates.
-  'https://admin.paraanaliz.com/api/news?depth=1&draft=true&trash=false&page=1&limit=5',
-  'https://admin.paraanaliz.com/api/blog?depth=1&draft=true&trash=false&page=1&limit=5&sort=-publishedAt',
 ]
 
 async function warm(): Promise<void> {
