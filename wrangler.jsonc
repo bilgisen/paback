@@ -4,6 +4,11 @@
   "name": "paback",
   "compatibility_date": "2026-04-23",
   "preview_urls": false,
+  "vars": {
+    // Enable D1 read replication routing in the sqliteD1Adapter
+    // (see src/payload.config.ts). Requires read replication enabled for pbackd.
+    "READ_REPLICAS": "true",
+  },
   "compatibility_flags": [
     // Enable Node.js API
     // see https://developers.cloudflare.com/workers/configuration/compatibility-flags/#nodejs-compatibility-flag
